@@ -1,19 +1,22 @@
 from sqlalchemy.orm import Session
-from model import users
+from model import User
 from schema import usersSchema
+import bcrypt
 
 def get_users(db:Session, skip:int=0, limit=100):
-    return db.query(users).offset(skip).limit(limit).all()
+    return db.query(User).offset(skip).limit(limit).all()
 
 def get_user_by_id(db:Session,user_id: int):
-    return db.query(users).filter(users.id == user_id).first()
+    return db.query(User).filter(User.id == user_id).first()
 
-def create_user(db: Session, user: usersSchema):
-    _user = users(username=user.username, email=user.email, password=user.password)
-    db.add(_user)
+
+def create_user(db: Session, username: str, email: str, password: str):
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+    db_user = User(username=username, email=email, password=hashed_password.decode('utf-8'))
+    db.add(db_user)
     db.commit()
-    db.refresh(_user)
-    return _user
+    db.refresh(db_user)
+    return db_user
 
 def remove_user(db:Session, user_id: int):
     _user = get_user_by_id(db=db, user_id=user_id)

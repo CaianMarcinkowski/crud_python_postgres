@@ -15,8 +15,11 @@ def get_db():
 
 @router.post('/create')
 async def create_user(request: RequestUsers, db: Session = Depends(get_db)):
-    crud.create_user(db, user=request.parameter)
-    return Response(code="200", status="Ok", message="User created successfully").dict(exclude_none=True)
+    username = request.parameter.username
+    email = request.parameter.email
+    password = request.parameter.password
+    crud.create_user(db, username, email, password)
+    return Response(code="200", status="Ok", message="User created successfully")
 
 @router.get('/')
 async def get_users(db: Session=Depends(get_db)):
