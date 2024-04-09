@@ -9,7 +9,6 @@ def get_users(db:Session, skip:int=0, limit=100):
 def get_user_by_id(db:Session,user_id: int):
     return db.query(User).filter(User.id == user_id).first()
 
-
 def create_user(db: Session, username: str, email: str, password: str):
     hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
     db_user = User(username=username, email=email, password=hashed_password.decode('utf-8'))

@@ -1,7 +1,9 @@
-from fastapi import APIRouter, HTTPException, Path, Depends
+from fastapi import APIRouter, Depends
 from config import SessionLocal
 from sqlalchemy.orm import Session
-from schema import usersSchema, RequestUsers, Response
+from schema import RequestUsers, Response
+from login.authenticate import authenticate_user
+from flask import session
 import crud
 
 router = APIRouter()
@@ -40,3 +42,20 @@ async def update_user(request: RequestUsers, db:Session = Depends(get_db)) :
 async def delete_user(id:int, db:Session = Depends(get_db)):
     crud.remove_user(db, id)
     return Response(code="200", status="Ok", message="Successfully deleted").dict(exclude_none=True)
+
+@router.post('/login')
+async def login(request: RequestUsers, db:Session = Depends(get_db)):
+    _user = authenticate_user(db, username=request.parameter.username, password=request.parameter.password)
+    if _user is None:
+        return Response(code="401", status="Failed", message="Login or pass incorrect").dict(exclude_none=True)
+    else:
+        return Response(code="200", status="Ok", message="Successfully login").dict(exclude_none=True)
+
+@router.post('/protected')
+async def protected(request: RequestUsers, db:Session = Depends(get_db)):
+    _user = authenticate_user(db, username=request.parameter.username, password=request.parameter.password)
+    if _user in session:
+        return Response(code="200", status="Ok", message="Successfully protected").dict(exclude_none=True)
+    else:
+        return Response(code="401", status="", message="Unauthorized").dict(exclude_none=True)
+    
